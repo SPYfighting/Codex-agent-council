@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Council"
+  short_description: "Run slash-triggered local agent reviews"
+  default_prompt: "Use $agent-council only for /council, /claudecode, or /opencode requests that should call local agent runtimes."
