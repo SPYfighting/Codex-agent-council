@@ -25,16 +25,17 @@ Use this template for every lane. Preserve the user's original wording where pos
 - Runtime model/effort: use the lane runtime's default unless an explicit model, effort, or variant is listed here.
 - Session mode: one-shot by default; persistent only if explicitly requested, with session id recorded here.
 - Allowed materials:
-- File permissions: read relevant files if needed; do not modify existing user/project files unless the request clearly requires it and approval is granted.
+- File permissions: read relevant files if needed; do not modify existing user/project files unless the request clearly requires it and approval is granted. If you need to propose edits, describe them in your answer instead of applying them.
 - Tool/network permissions:
-- Artifact policy: write any generated council files only to the provided run artifact directory, if one is provided.
+- Artifact policy: write generated council files only to the provided run directory, if one is provided. Do not create arbitrary Markdown files in the user's project.
 - Disallowed actions:
 - Domain boundaries:
 - Evidence standard:
+- Run directory, if provided:
 
 ## Context And Materials
 
-<Provide raw context, file paths, excerpts, or user-provided background. Prefer raw materials over Host Codex summaries when feasible.>
+<Provide raw context, absolute file paths, excerpts, or user-provided background. Prefer raw materials over Host Codex summaries when feasible.>
 
 ## Lane Role
 

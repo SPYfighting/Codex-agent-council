@@ -1,0 +1,6 @@
+interface:
+  display_name: "Council"
+  short_description: "Run a Codex-led multi-agent council"
+  default_prompt: "/council "
+policy:
+  allow_implicit_invocation: false

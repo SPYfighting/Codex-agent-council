@@ -1,6 +1,8 @@
 # Synthesis Template
 
-Use this after collecting Host Codex and external lane reports.
+Use the full template after collecting Host Codex and external lane reports for `/council`.
+
+For `/claudecode` or `/opencode`, use the single-lane template at the end of this file instead of forcing a three-lane comparison.
 
 ```markdown
 # Agent Council Synthesis
@@ -114,6 +116,56 @@ Preserve raw lane outputs in collapsible blocks by default. If an output is too 
 
 ```markdown
 <Paste the OpenCode stdout or lane report, preserving wording where possible.>
+```
+
+</details>
+```
+
+## Single-Lane Outside Opinion Template
+
+Use this for `/claudecode` or `/opencode`.
+
+```markdown
+# Outside Opinion: <Claude Code | OpenCode>
+
+## Bottom Line
+
+<One sentence summarizing the external opinion.>
+
+## What The External Agent Said
+
+<Concise summary of the lane's answer. Preserve uncertainty and caveats.>
+
+## Useful Points To Carry Forward
+
+1. <Point>
+2. <Point>
+3. <Point>
+
+## Concerns Or Gaps
+
+1. <Concern, missing evidence, or limitation>
+2. <Concern, missing evidence, or limitation>
+
+## Codex Framing
+
+<Briefly state whether this is only an outside opinion, whether Codex has independently verified anything, and what the user should validate next.>
+
+## Run Artifacts
+
+- Lane:
+- Status:
+- Runtime:
+- Durable artifact directory:
+- Scratch directory cleaned: yes | no | not applicable
+
+## Raw Output
+
+<details>
+<summary><Claude Code | OpenCode> raw output</summary>
+
+```markdown
+<Paste the raw lane output, or state where the full output is stored.>
 ```
 
 </details>

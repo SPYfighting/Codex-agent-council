@@ -1,0 +1,6 @@
+interface:
+  display_name: "OpenCode"
+  short_description: "Ask OpenCode for one outside opinion"
+  default_prompt: "/opencode "
+policy:
+  allow_implicit_invocation: false
