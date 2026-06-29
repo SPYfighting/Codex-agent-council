@@ -14,12 +14,24 @@ That difference is useful, but copying prompts and answers across Codex, Claude 
 
 ## What it does
 
-- `/council` asks Host Codex, Claude Code, and OpenCode to review the same task when those agents are available.
-- `/claudecode` asks Claude Code only and returns its answer as one outside opinion.
-- `/opencode` asks OpenCode only and returns its answer as one outside opinion.
+- `$agent-council /council` asks Host Codex, Claude Code, and OpenCode to review the same task when those agents are available.
+- `$agent-council /claudecode` asks Claude Code only and returns its answer as one outside opinion.
+- `$agent-council /opencode` asks OpenCode only and returns its answer as one outside opinion.
 - Codex keeps the raw external answers available in collapsible sections when useful.
 - External agents run as one-off foreground commands by default.
 - External agents are told not to edit existing project files unless the user clearly asks for edits.
+
+## How to invoke it
+
+Invoke the skill explicitly with `$agent-council`, then put one of the mode markers at the start of your request:
+
+```text
+$agent-council /council ...
+$agent-council /claudecode ...
+$agent-council /opencode ...
+```
+
+The `/council`, `/claudecode`, and `/opencode` strings are mode markers used by this skill. They are not standalone Codex-native slash commands registered by this repository. In some Codex surfaces, installed skills may also appear in the slash or skill picker; selecting Agent Council there is equivalent to explicitly invoking the skill.
 
 ## Before you install
 
@@ -95,31 +107,31 @@ This keeps the skill portable across machines while still giving you an escape h
 Architecture review:
 
 ```text
-/council Review whether we should split this monolith service into separate billing, notifications, and reporting services. Focus on migration risk, team complexity, and test strategy.
+$agent-council /council Review whether we should split this monolith service into separate billing, notifications, and reporting services. Focus on migration risk, team complexity, and test strategy.
 ```
 
 Second opinion on a pull request:
 
 ```text
-/claudecode Review this pull request for hidden regression risks and missing tests. Treat your answer as one outside opinion, not a final consensus.
+$agent-council /claudecode Review this pull request for hidden regression risks and missing tests. Treat your answer as one outside opinion, not a final consensus.
 ```
 
 Market research:
 
 ```text
-/opencode Research the market positioning for a lightweight project-management app for academic labs. Compare likely users, buying triggers, competitors, and risks.
+$agent-council /opencode Research the market positioning for a lightweight project-management app for academic labs. Compare likely users, buying triggers, competitors, and risks.
 ```
 
 Research planning:
 
 ```text
-/council Use the available literature-search skills to evaluate whether this protein engineering direction is worth a three-month pilot. Separate established facts, model inference, and wet-lab feasibility.
+$agent-council /council Use the available literature-search skills to evaluate whether this protein engineering direction is worth a three-month pilot. Separate established facts, model inference, and wet-lab feasibility.
 ```
 
 Documentation planning:
 
 ```text
-/claudecode Propose a documentation structure for onboarding backend engineers to this repository. Focus on what a new contributor needs in the first week.
+$agent-council /claudecode Propose a documentation structure for onboarding backend engineers to this repository. Focus on what a new contributor needs in the first week.
 ```
 
 ## Safety notes

@@ -1,23 +1,24 @@
 ---
 name: agent-council
-description: Coordinate local agent runtime reviews from Codex only when the user explicitly writes /council, /claudecode, or /opencode. /council runs Host Codex independently plus Claude Code and OpenCode lanes when available; /claudecode runs only Claude Code; /opencode runs only OpenCode. Best for low-frequency high-value work such as科研方向规划, 大型调研, 蛋白质工程路线选择, 定向进化实验方案审查, protein-ML strategy review, paper/grant logic review, and major architecture decisions. Do not call external agent runtimes for natural-language suggestions or routine tasks without one of these literal slash commands.
+description: Coordinate local agent runtime reviews from Codex when explicitly invoked as $agent-council, using /council, /claudecode, or /opencode as mode markers inside the prompt. /council runs Host Codex independently plus Claude Code and OpenCode lanes when available; /claudecode runs only Claude Code; /opencode runs only OpenCode. Best for low-frequency high-value work such as科研方向规划, 大型调研, 蛋白质工程路线选择, 定向进化实验方案审查, protein-ML strategy review, paper/grant logic review, and major architecture decisions. These mode markers are not standalone Codex-native slash commands; do not call external agent runtimes for routine tasks without explicit $agent-council invocation.
 ---
 
 # Agent Council
 
 Run a council from inside Codex by asking local agent runtimes, such as Claude Code and OpenCode, to independently analyze the same task packet. The goal is to compare agent systems, not just bare models.
 
-## Slash Command Router
+## Mode Router
 
+- Use `/council`, `/claudecode`, and `/opencode` as mode markers after the user explicitly invokes `$agent-council`. They are not custom slash commands registered by this skill.
 - `/council`: run a full council with Host Codex, Claude Code, and OpenCode. Host Codex must create its own independent lane report before reading external lane outputs when possible.
 - `/claudecode`: call Claude Code only as a third-party opinion. Do not create a separate Host Codex analytical lane; Codex may format, relay, and label the result as a single external opinion.
 - `/opencode`: call OpenCode only as a third-party opinion. Do not create a separate Host Codex analytical lane; Codex may format, relay, and label the result as a single external opinion.
-- If the user discusses council behavior without one of these literal commands, explain the available commands but do not call external agent runtimes.
+- If the user discusses council behavior without explicitly invoking this skill and choosing one of these mode markers, explain the available invocation form but do not call external agent runtimes.
 
 ## Operating Rules
 
 - Keep Codex as the only user-facing control surface: the user should not need to switch to Claude Code or OpenCode manually.
-- Treat the literal slash command as the user's request to use the relevant external lane(s). Before running a lane command, state which local agent will be called, what task packet will be sent, and whether tools/network/file access are allowed.
+- Treat the selected mode marker as the user's request to use the relevant external lane(s). Before running a lane command, state which local agent will be called, what task packet will be sent, and whether tools/network/file access are allowed.
 - Allow external lanes to read relevant files, use their configured tools, and use network access when the task requires it and the runtime permits it.
 - Restrict external lanes from modifying existing user/project files by default. They may return stdout or create council run artifacts if the adapter supports that, but should not edit existing source/research files unless the request clearly requires it.
 - If an external lane requests approval for a tool action, Codex may approve or reject on the user's behalf according to the same policy: allow reading/searching and council artifact creation; reject dangerous operations and unrelated edits.
@@ -33,7 +34,7 @@ Run a council from inside Codex by asking local agent runtimes, such as Claude C
 ## Workflow
 
 1. Route the command.
-   - Use `/council`, `/claudecode`, or `/opencode` exactly as described above.
+   - Use `/council`, `/claudecode`, or `/opencode` as mode markers exactly as described above.
    - Skip unavailable requested external lanes only after checking command availability.
 
 2. Confirm the scope.
@@ -148,7 +149,7 @@ Edit restriction:
 
 - Prefer `--permission-mode auto` for real lanes so the runtime can request or decide permissions without bypassing checks.
 - Use `--permission-mode plan` only when the user wants strict read/research/review behavior.
-- If a lane needs to modify existing user/project files, approve only when the requested edit is directly necessary and aligned with the user's slash command; otherwise reject or ask the user.
+- If a lane needs to modify existing user/project files, approve only when the requested edit is directly necessary and aligned with the user's selected mode marker; otherwise reject or ask the user.
 
 ### OpenCode Lane
 

@@ -12,16 +12,28 @@ Codex Agent Council 是一个 Codex skill。它让你在 Codex 里直接调用 C
 
 这件事在科研方向探索、文献调研、实验路线设计和重要代码决策里挺有用。有的 Agent 更容易注意到实验风险，有的更会拆文献线索，有的在代码审查或方案取舍上更顺手。问题是，真的在几个 Agent 之间来回复制粘贴，很快就会变得很烦。上下文容易漏，结果也不好整理。
 
-我更想把 Codex 当成主入口。它的桌面端 GUI 好用，读文件、整理材料、汇总结果都顺手。所以这个 skill 做的事情很简单：当一个问题重要到值得“会诊”时，在 Codex 里打一个 slash command，让其他 CLI Agent 各自给意见，最后仍然回到 Codex 里看、比对和总结。
+我更想把 Codex 当成主入口。它的桌面端 GUI 好用，读文件、整理材料、汇总结果都顺手。所以这个 skill 做的事情很简单：当一个问题重要到值得“会诊”时，在 Codex 里显式调用 Agent Council，让其他 CLI Agent 各自给意见，最后仍然回到 Codex 里看、比对和总结。
 
 ## 它能做什么
 
-- `/council`：让 Host Codex、Claude Code 和 OpenCode 尽量都参与同一个问题。
-- `/claudecode`：只调用 Claude Code，把结果作为一个外部参考意见。
-- `/opencode`：只调用 OpenCode，把结果作为一个外部参考意见。
+- `$agent-council /council`：让 Host Codex、Claude Code 和 OpenCode 尽量都参与同一个问题。
+- `$agent-council /claudecode`：只调用 Claude Code，把结果作为一个外部参考意见。
+- `$agent-council /opencode`：只调用 OpenCode，把结果作为一个外部参考意见。
 - 需要时，Codex 会把外部 Agent 的原始回答放在可折叠区域里，方便回看。
 - 默认只运行一次性前台命令，不在后台留下长期会话。
 - 默认会要求外部 Agent 不要修改已有项目文件，除非你的请求明确要改文件。
+
+## 怎么调用
+
+先显式调用 `$agent-council`，然后在请求开头放一个模式标记：
+
+```text
+$agent-council /council ...
+$agent-council /claudecode ...
+$agent-council /opencode ...
+```
+
+这里的 `/council`、`/claudecode` 和 `/opencode` 是本 skill 内部使用的模式标记，不是这个仓库注册出来的 Codex 原生命令。有些 Codex 界面会把已安装 skill 显示在 slash 或 skill 选择器里；如果你在那里选择 Agent Council，效果等同于显式调用这个 skill。
 
 ## 安装前先确认
 
@@ -97,31 +109,31 @@ OpenCode：
 软件架构评审：
 
 ```text
-/council Review whether we should split this monolith service into separate billing, notifications, and reporting services. Focus on migration risk, team complexity, and test strategy.
+$agent-council /council Review whether we should split this monolith service into separate billing, notifications, and reporting services. Focus on migration risk, team complexity, and test strategy.
 ```
 
 让 Claude Code 单独看一眼 PR：
 
 ```text
-/claudecode Review this pull request for hidden regression risks and missing tests. Treat your answer as one outside opinion, not a final consensus.
+$agent-council /claudecode Review this pull request for hidden regression risks and missing tests. Treat your answer as one outside opinion, not a final consensus.
 ```
 
 市场调研：
 
 ```text
-/opencode Research the market positioning for a lightweight project-management app for academic labs. Compare likely users, buying triggers, competitors, and risks.
+$agent-council /opencode Research the market positioning for a lightweight project-management app for academic labs. Compare likely users, buying triggers, competitors, and risks.
 ```
 
 科研方向判断：
 
 ```text
-/council Use the available literature-search skills to evaluate whether this protein engineering direction is worth a three-month pilot. Separate established facts, model inference, and wet-lab feasibility.
+$agent-council /council Use the available literature-search skills to evaluate whether this protein engineering direction is worth a three-month pilot. Separate established facts, model inference, and wet-lab feasibility.
 ```
 
 文档结构建议：
 
 ```text
-/claudecode Propose a documentation structure for onboarding backend engineers to this repository. Focus on what a new contributor needs in the first week.
+$agent-council /claudecode Propose a documentation structure for onboarding backend engineers to this repository. Focus on what a new contributor needs in the first week.
 ```
 
 ## 安全边界
