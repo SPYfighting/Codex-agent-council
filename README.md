@@ -2,40 +2,37 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-Codex Agent Council is a Codex skill for asking local CLI agent runtimes, such as Claude Code and OpenCode, to review the same question from inside Codex. It keeps Codex as the main desktop GUI and coordination surface, while letting other agents contribute their own model choices, skills, plugins, MCP tools, and reasoning habits.
+Codex Agent Council is a small Codex skill that lets you ask Claude Code and OpenCode for separate opinions without leaving Codex.
 
-The motivation came from real research work: different agents often notice different risks, evidence, and strategic options, especially in open-ended scientific planning. Copying prompts and answers between Codex, Claude Code, and OpenCode is slow and error-prone. Codex has a strong desktop experience and a comfortable main workflow, so this skill makes Codex the front door for multi-agent consultation.
+It is not a model router, and it does not try to replace your existing agent setup. Codex stays as the place where you write the question, read the answers, and make the final call. Claude Code and OpenCode run as local CLI agents using whatever models, skills, plugins, MCP servers, and provider settings you already configured for them.
 
-## What It Does
+## Why this exists
 
-- `/council`: run a full council with Host Codex, Claude Code, and OpenCode when available.
-- `/claudecode`: ask Claude Code only and return it as a single external opinion.
-- `/opencode`: ask OpenCode only and return it as a single external opinion.
-- Preserve raw lane outputs in collapsible sections so users can audit the synthesis.
-- Use one-shot foreground processes by default; no background agents are left running unless explicitly requested.
-- Keep external lanes from modifying existing project files unless the request clearly requires it.
-- Save durable run artifacts for full council sessions and long or failed single-lane runs.
+I built this after running into the same problem in real research work. When I ask the same open-ended question in different agents, I often get different judgment calls. One agent may be better at spotting experimental risk. Another may frame the literature search differently. A third may be more useful for code review or planning.
 
-## Requirements
+That difference is useful, but copying prompts and answers across Codex, Claude Code, and OpenCode gets old fast. Codex already works well for me as the main desktop interface, especially when I am reading files and organizing a final answer. This skill keeps that workflow: when a question is important enough to ask more than one agent, I can start the council from Codex and compare the results in one place.
 
-- Codex with local skills support.
-- Claude Code CLI installed, authenticated, and usable as `claude`, or provided through `CLAUDE_BIN`.
-- OpenCode CLI installed, authenticated, and usable as `opencode`, through `OPENCODE_BIN`, or at `~/.opencode/bin/opencode`.
+## What it does
 
-Claude Code and OpenCode are optional individually. `/council` works best when both are configured, but `/claudecode` or `/opencode` can still be useful when only one external agent is available.
+- `/council` asks Host Codex, Claude Code, and OpenCode to review the same task when those agents are available.
+- `/claudecode` asks Claude Code only and returns its answer as one outside opinion.
+- `/opencode` asks OpenCode only and returns its answer as one outside opinion.
+- Codex keeps the raw external answers available in collapsible sections when useful.
+- External agents run as one-off foreground commands by default.
+- External agents are told not to edit existing project files unless the user clearly asks for edits.
 
-## Configure CLI Agents First
+## Before you install
 
-This skill does not install Claude Code, install OpenCode, choose their models, manage their provider settings, or store their credentials. It only asks Codex to call local CLI agents that already work on your machine.
+You need Codex with local skills support.
 
-Before using this skill, configure each external agent in its own environment:
+You also need at least one external CLI agent:
 
-1. Install Claude Code and complete its login/provider/model configuration.
-2. Install OpenCode and complete its login/provider/model configuration.
-3. Install any skills, plugins, MCP servers, or project-specific settings you want those agents to use inside their own agent environments.
-4. Verify that each CLI can answer a non-interactive prompt from a normal terminal.
+- Claude Code CLI, logged in and working as `claude`, or set with `CLAUDE_BIN`.
+- OpenCode CLI, logged in and working as `opencode`, set with `OPENCODE_BIN`, or installed at `~/.opencode/bin/opencode`.
 
-Suggested checks:
+The skill does not install Claude Code or OpenCode. It also does not choose their models, manage API keys, or copy your Codex skills into those tools. If you want Claude Code or OpenCode to use specific skills, plugins, MCP servers, or model profiles, configure those in the agent itself first.
+
+Quick checks:
 
 ```bash
 command -v claude
@@ -46,123 +43,93 @@ opencode --help
 opencode run --help
 ```
 
-Optional smoke tests, if you want to confirm real model calls:
+Optional smoke tests:
 
 ```bash
 claude -p --no-session-persistence --permission-mode plan "Reply with one sentence: Claude Code is ready."
 opencode run "Reply with one sentence: OpenCode is ready."
 ```
 
-If Codex Desktop cannot find a command that works in your terminal, the GUI app may not share your shell `PATH`. In that case, set `CLAUDE_BIN` or `OPENCODE_BIN` in the environment visible to Codex, or provide an absolute command path when asking Codex to use the skill.
+If a command works in your terminal but not from Codex Desktop, Codex may be running with a different `PATH`. Use `CLAUDE_BIN` or `OPENCODE_BIN`, or give Codex the absolute path for that run.
 
-## Installation
+## Install
 
-Copy the `agent-council/` folder into your Codex skills directory:
+Copy only the `agent-council/` folder into your Codex skills directory:
 
 ```bash
 mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
 cp -R agent-council "${CODEX_HOME:-$HOME/.codex}/skills/"
 ```
 
-Restart Codex or reload skills if your Codex environment requires it.
+Restart Codex or reload skills if your setup needs it.
 
-### Agent-Friendly Installation Prompt
+### Prompt for another agent
 
-You can ask an agent to install it with a prompt like this:
+If you want another agent to install it for you, this prompt is usually enough:
 
 ```text
-Install the Codex skill from this repository. Copy the agent-council/ folder into ${CODEX_HOME:-$HOME/.codex}/skills, do not copy raw/, runs/, or repository metadata, then verify that agent-council/SKILL.md has valid skill frontmatter. Do not install or reconfigure Claude Code or OpenCode unless I explicitly ask for that separately.
+Install the Codex skill from this repository. Copy only the agent-council/ folder into ${CODEX_HOME:-$HOME/.codex}/skills. Do not copy README files, LICENSE, .git/, or other repository files into the Codex skills directory. Check that agent-council/SKILL.md has valid skill frontmatter. Do not install or reconfigure Claude Code or OpenCode unless I ask for that separately.
 ```
 
-## Command Discovery
+## How command lookup works
 
-The skill should resolve external commands at runtime instead of using machine-specific paths.
+When Codex runs this skill, it looks for the external CLIs in a small, predictable order.
 
-Claude Code discovery order:
+Claude Code:
 
 1. `CLAUDE_BIN`
 2. `command -v claude`
-3. user-provided absolute path
+3. an absolute path provided by the user
 
-OpenCode discovery order:
+OpenCode:
 
 1. `OPENCODE_BIN`
 2. `command -v opencode`
 3. `~/.opencode/bin/opencode`
-4. user-provided absolute path
+4. an absolute path provided by the user
 
-This avoids hardcoding local paths and works better across macOS, Linux, and different package managers.
+This keeps the skill portable across machines while still giving you an escape hatch when a GUI app cannot see your shell environment.
 
-## Usage Examples
+## Examples
 
-Full council for a software architecture decision:
+Architecture review:
 
 ```text
 /council Review whether we should split this monolith service into separate billing, notifications, and reporting services. Focus on migration risk, team complexity, and test strategy.
 ```
 
-Claude Code as a third-party code review opinion:
+Second opinion on a pull request:
 
 ```text
-/claudecode Review this pull request for hidden regression risks and missing tests. Treat your answer as one external opinion, not a final consensus.
+/claudecode Review this pull request for hidden regression risks and missing tests. Treat your answer as one outside opinion, not a final consensus.
 ```
 
-OpenCode for product or market research:
+Market research:
 
 ```text
 /opencode Research the market positioning for a lightweight project-management app for academic labs. Compare likely users, buying triggers, competitors, and risks.
 ```
 
-Full council for research planning:
+Research planning:
 
 ```text
 /council Use the available literature-search skills to evaluate whether this protein engineering direction is worth a three-month pilot. Separate established facts, model inference, and wet-lab feasibility.
 ```
 
-Claude Code for documentation strategy:
+Documentation planning:
 
 ```text
 /claudecode Propose a documentation structure for onboarding backend engineers to this repository. Focus on what a new contributor needs in the first week.
 ```
 
-## Runtime Behavior
+## Safety notes
 
-By default, each external lane runs as a one-shot foreground process:
+- The skill does not use dangerous permission-bypass flags by default.
+- External agents should not edit existing files unless your request clearly asks for edits.
+- Claude Code and OpenCode use their own credentials and provider settings.
+- Long-running external sessions are opt-in. The default is a single foreground command.
 
-- Claude Code uses non-persistent print mode.
-- OpenCode uses `opencode run`.
-- No background server, TUI, or persistent external session is started by default.
-
-If the user explicitly asks for a long-running or multi-turn external-agent discussion, the skill may use a persistent session and must report the session id and continuation command.
-
-## Artifact Policy
-
-Scratch files should be written under `${TMPDIR:-/tmp}/agent-council-<run-id>/` and cleaned after the run.
-
-Durable run artifacts should be written under `./runs/<timestamp-slug>/` when needed. Full `/council` sessions should be saved by default. Short successful `/claudecode` and `/opencode` runs can stay only in the Codex response unless the output is long, failed, timed out, or explicitly requested for retention.
-
-Suggested artifact layout:
-
-```text
-runs/<timestamp-slug>/
-  task-packet.md
-  metadata.json
-  host-codex.raw.md
-  claude-code.raw.md
-  opencode.raw.md
-  synthesis.md
-  stderr/
-```
-
-## Safety Boundaries
-
-- Do not use dangerous permission bypass flags by default.
-- Do not silently modify existing user or project files.
-- External agents may read relevant files, use their configured tools, and use network access when the task calls for it.
-- If an external lane needs to write Markdown or other artifacts, direct it to the current run artifact directory.
-- The skill does not manage provider credentials. Claude Code and OpenCode should use their own existing configuration.
-
-## Repository Layout
+## Repository layout
 
 ```text
 agent-council/
@@ -175,22 +142,26 @@ agent-council/
 README.md
 README.zh-CN.md
 LICENSE
-.gitignore
 ```
 
 ## Troubleshooting
 
-If Codex cannot find Claude Code, check:
+If Codex cannot find Claude Code, run:
 
 ```bash
 command -v claude
 ```
 
-If Codex cannot find OpenCode but your terminal can, your GUI app may not share the same `PATH`. Either set `OPENCODE_BIN` or make sure `~/.opencode/bin/opencode` exists.
+If Codex cannot find OpenCode, run:
 
-If a CLI command exists but the lane fails, run the same command directly in your terminal first. In most cases the cause is missing login, missing provider configuration, a model/profile setting inside that agent, or permissions requested by that external runtime.
+```bash
+command -v opencode
+test -x "$HOME/.opencode/bin/opencode"
+```
 
-If the validation script complains about missing `yaml`, install PyYAML in the Python environment used for validation or use another YAML parser to check the `SKILL.md` frontmatter.
+If the command exists but the lane fails, try the same command in your terminal. Common causes are missing login, missing provider configuration, a model/profile issue inside that agent, or a permission prompt from the external runtime.
+
+If Codex recently installed this skill and does not notice it yet, restart Codex or reload local skills.
 
 ## License
 

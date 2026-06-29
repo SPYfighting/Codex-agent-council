@@ -2,40 +2,39 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-Codex Agent Council 是一个 Codex skill，用于在 Codex 内部调用本机 CLI Agent，例如 Claude Code 和 OpenCode，让它们围绕同一个问题给出独立意见。它把 Codex 保持为主要桌面端 GUI 和调度入口，同时让其他 Agent 带着各自的模型选择、skills、plugins、MCP 工具和推理习惯参与会诊。
+Codex Agent Council 是一个 Codex skill。它让你在 Codex 里直接调用 Claude Code 和 OpenCode，让几个本机 CLI Agent 围绕同一个问题分别给意见。
 
-开发这个 skill 的原因来自真实科研工作：在开放式科研规划中，不同 Agent 往往会注意到不同的风险、证据和策略选项。在 Codex、Claude Code 和 OpenCode 之间反复复制粘贴提示词和答案很低效，也容易遗漏上下文。Codex 的桌面端体验和日常工作流足够舒服，因此这个 skill 选择让 Codex 成为多 Agent 会诊的主入口。
+它不是模型路由器，也不接管你原来配置好的 Agent。Codex 仍然是你提问、看结果、做最终判断的地方。Claude Code 和 OpenCode 会按它们自己已经配置好的模型、skills、plugins、MCP servers 和服务商设置运行。
 
-## 功能
+## 为什么做这个
 
-- `/council`：运行完整会诊，尽可能同时调用 Host Codex、Claude Code 和 OpenCode。
-- `/claudecode`：只调用 Claude Code，并把结果作为单个第三方意见返回。
-- `/opencode`：只调用 OpenCode，并把结果作为单个第三方意见返回。
-- 在可折叠区域保留各 lane 原始输出，方便用户审计最终综合结论。
-- 默认使用一次性前台进程，不留下后台 Agent，除非用户明确要求长会话。
-- 默认限制外部 lane 修改已有项目文件，除非请求本身明确需要修改。
-- 完整 `/council` 和较长或失败的单 lane 运行会保存持久化运行产物。
+我做这个小工具，是因为自己在科研和日常开发里反复遇到同一个问题：同一个问题，放到不同 Agent 里问，得到的判断和视角经常不一样。
 
-## 使用要求
+这件事在科研方向探索、文献调研、实验路线设计和重要代码决策里挺有用。有的 Agent 更容易注意到实验风险，有的更会拆文献线索，有的在代码审查或方案取舍上更顺手。问题是，真的在几个 Agent 之间来回复制粘贴，很快就会变得很烦。上下文容易漏，结果也不好整理。
 
-- 支持本地 skills 的 Codex。
-- 已安装、已登录、已配置并可通过 `claude` 调用的 Claude Code CLI，或通过 `CLAUDE_BIN` 指定。
-- 已安装、已登录、已配置并可通过 `opencode` 调用的 OpenCode CLI，或通过 `OPENCODE_BIN` 指定，或位于 `~/.opencode/bin/opencode`。
+我更想把 Codex 当成主入口。它的桌面端 GUI 好用，读文件、整理材料、汇总结果都顺手。所以这个 skill 做的事情很简单：当一个问题重要到值得“会诊”时，在 Codex 里打一个 slash command，让其他 CLI Agent 各自给意见，最后仍然回到 Codex 里看、比对和总结。
 
-Claude Code 和 OpenCode 单独来看都是可选的。`/council` 在两者都配置好时效果最好；如果只配置了其中一个，`/claudecode` 或 `/opencode` 仍然可以作为单个外部意见使用。
+## 它能做什么
 
-## 先配置 CLI Agent
+- `/council`：让 Host Codex、Claude Code 和 OpenCode 尽量都参与同一个问题。
+- `/claudecode`：只调用 Claude Code，把结果作为一个外部参考意见。
+- `/opencode`：只调用 OpenCode，把结果作为一个外部参考意见。
+- 需要时，Codex 会把外部 Agent 的原始回答放在可折叠区域里，方便回看。
+- 默认只运行一次性前台命令，不在后台留下长期会话。
+- 默认会要求外部 Agent 不要修改已有项目文件，除非你的请求明确要改文件。
 
-这个 skill 不负责安装 Claude Code、安装 OpenCode、选择它们的模型、管理它们的服务商配置，也不保存它们的凭据。它只负责让 Codex 调用你本机已经能正常工作的 CLI Agent。
+## 安装前先确认
 
-使用本 skill 前，请先在对应 Agent 自己的环境中完成配置：
+你需要一个支持本地 skills 的 Codex。
 
-1. 安装 Claude Code，并完成登录、服务商和模型配置。
-2. 安装 OpenCode，并完成登录、服务商和模型配置。
-3. 如果你希望外部 Agent 使用某些 skills、plugins、MCP servers 或项目配置，需要分别安装到 Claude Code 和 OpenCode 自己的环境中。
-4. 确认每个 CLI 都能在普通终端中回答一次非交互式提示词。
+你还需要至少配置好一个外部 CLI Agent：
 
-建议检查：
+- Claude Code CLI：已登录、已配置，并且可以通过 `claude` 调用，或用 `CLAUDE_BIN` 指定。
+- OpenCode CLI：已登录、已配置，并且可以通过 `opencode` 调用，或用 `OPENCODE_BIN` 指定，也可以安装在 `~/.opencode/bin/opencode`。
+
+这个 skill 不负责安装 Claude Code 或 OpenCode，也不负责替它们选择模型、保存 API key，或把 Codex 里的 skills 自动复制过去。如果你希望 Claude Code 或 OpenCode 使用某些 skills、plugins、MCP servers 或模型 profile，需要先在对应 Agent 自己的环境里配置好。
+
+可以先做这些检查：
 
 ```bash
 command -v claude
@@ -46,121 +45,91 @@ opencode --help
 opencode run --help
 ```
 
-如果你想确认真实模型调用也可用，可以做可选 smoke test：
+如果想确认真实模型调用也可用，可以再跑一个简单测试：
 
 ```bash
 claude -p --no-session-persistence --permission-mode plan "Reply with one sentence: Claude Code is ready."
 opencode run "Reply with one sentence: OpenCode is ready."
 ```
 
-如果 Codex Desktop 找不到你在终端里能用的命令，通常是 GUI app 没继承 shell 的 `PATH`。这时可以在 Codex 可见的环境中设置 `CLAUDE_BIN` 或 `OPENCODE_BIN`，也可以在让 Codex 使用 skill 时提供绝对命令路径。
+如果命令在终端里能用，但 Codex Desktop 找不到，通常是 Codex 没拿到你的 shell `PATH`。这时可以设置 `CLAUDE_BIN` 或 `OPENCODE_BIN`，也可以在本次使用时直接给 Codex 绝对路径。
 
 ## 安装
 
-把 `agent-council/` 文件夹复制到 Codex skills 目录：
+只需要把 `agent-council/` 文件夹复制到 Codex skills 目录：
 
 ```bash
 mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
 cp -R agent-council "${CODEX_HOME:-$HOME/.codex}/skills/"
 ```
 
-如果你的 Codex 环境需要重启或重新加载 skills，请执行对应操作。
+如果你的 Codex 环境需要重启或重新加载 skills，执行对应操作即可。
 
-### 给 Agent 的安装提示词
+### 让 Agent 帮你安装
 
-你可以让 Agent 用类似下面的提示词安装：
+可以把下面这段话发给 Agent：
 
 ```text
-Install the Codex skill from this repository. Copy the agent-council/ folder into ${CODEX_HOME:-$HOME/.codex}/skills, do not copy raw/, runs/, or repository metadata, then verify that agent-council/SKILL.md has valid skill frontmatter. Do not install or reconfigure Claude Code or OpenCode unless I explicitly ask for that separately.
+Install the Codex skill from this repository. Copy only the agent-council/ folder into ${CODEX_HOME:-$HOME/.codex}/skills. Do not copy README files, LICENSE, .git/, or other repository files into the Codex skills directory. Check that agent-council/SKILL.md has valid skill frontmatter. Do not install or reconfigure Claude Code or OpenCode unless I ask for that separately.
 ```
 
-## 命令发现
+## 本 skill 的命令发现机制
 
-本 skill 应在运行时动态发现外部命令，而不是使用某台机器上的写死路径。
+Codex 调用外部 Agent 时，会按一个固定顺序找本机命令。
 
-Claude Code 发现顺序：
+Claude Code：
 
 1. `CLAUDE_BIN`
 2. `command -v claude`
 3. 用户提供的绝对路径
 
-OpenCode 发现顺序：
+OpenCode：
 
 1. `OPENCODE_BIN`
 2. `command -v opencode`
 3. `~/.opencode/bin/opencode`
 4. 用户提供的绝对路径
 
-这样可以避免硬编码本机路径，也更适配 macOS、Linux 和不同包管理器。
+这样做的好处是，同一个 skill 可以在不同机器上使用；如果 Codex 作为 GUI app 看不到你的 shell 环境，也还有手动指定路径的办法。
 
 ## 使用示例
 
-软件架构决策的完整会诊：
+软件架构评审：
 
 ```text
 /council Review whether we should split this monolith service into separate billing, notifications, and reporting services. Focus on migration risk, team complexity, and test strategy.
 ```
 
-把 Claude Code 作为第三方代码审查意见：
+让 Claude Code 单独看一眼 PR：
 
 ```text
-/claudecode Review this pull request for hidden regression risks and missing tests. Treat your answer as one external opinion, not a final consensus.
+/claudecode Review this pull request for hidden regression risks and missing tests. Treat your answer as one outside opinion, not a final consensus.
 ```
 
-用 OpenCode 做产品或市场调研：
+市场调研：
 
 ```text
 /opencode Research the market positioning for a lightweight project-management app for academic labs. Compare likely users, buying triggers, competitors, and risks.
 ```
 
-科研规划的完整会诊：
+科研方向判断：
 
 ```text
 /council Use the available literature-search skills to evaluate whether this protein engineering direction is worth a three-month pilot. Separate established facts, model inference, and wet-lab feasibility.
 ```
 
-让 Claude Code 单独给文档结构建议：
+文档结构建议：
 
 ```text
 /claudecode Propose a documentation structure for onboarding backend engineers to this repository. Focus on what a new contributor needs in the first week.
 ```
 
-## 运行行为
-
-默认情况下，每个外部 lane 都作为一次性前台进程运行：
-
-- Claude Code 使用非持久化 print mode。
-- OpenCode 使用 `opencode run`。
-- 默认不启动后台 server、TUI 或持久化外部会话。
-
-如果用户明确要求长时间、多轮的外部 Agent 讨论，本 skill 可以使用持久化会话，但必须报告 session id 和后续继续会话的命令。
-
-## 产物策略
-
-临时 scratch 文件应写入 `${TMPDIR:-/tmp}/agent-council-<run-id>/`，并在运行结束后清理。
-
-需要保留的持久化运行产物应写入 `./runs/<timestamp-slug>/`。完整 `/council` 默认保存。简短且成功的 `/claudecode` 和 `/opencode` 可以只保留在 Codex 回复中；如果输出很长、失败、超时，或用户明确要求保留，则保存运行产物。
-
-建议产物结构：
-
-```text
-runs/<timestamp-slug>/
-  task-packet.md
-  metadata.json
-  host-codex.raw.md
-  claude-code.raw.md
-  opencode.raw.md
-  synthesis.md
-  stderr/
-```
-
 ## 安全边界
 
-- 默认不要使用危险的权限绕过参数。
-- 不要静默修改已有用户文件或项目文件。
-- 外部 Agent 可以读取相关文件、使用它们配置好的工具，并在任务需要时使用网络访问。
-- 如果外部 lane 需要写入 Markdown 或其他产物，应写到当前 run artifact 目录。
-- 本 skill 不管理服务商凭据。Claude Code 和 OpenCode 应使用它们自己已有的配置。
+- 默认不使用危险的权限绕过参数。
+- 外部 Agent 不应该修改已有文件，除非你的请求明确要求它这样做。
+- Claude Code 和 OpenCode 使用它们自己的登录状态、凭据和服务商设置。
+- 默认是一次性前台命令。需要长会话时，要由用户明确提出。
 
 ## 仓库结构
 
@@ -175,22 +144,26 @@ agent-council/
 README.md
 README.zh-CN.md
 LICENSE
-.gitignore
 ```
 
-## 故障排查
+## 常见问题
 
-如果 Codex 找不到 Claude Code，先检查：
+如果 Codex 找不到 Claude Code，先运行：
 
 ```bash
 command -v claude
 ```
 
-如果 Codex 找不到 OpenCode，但你的终端可以使用 OpenCode，通常是 GUI app 没有共享同一个 `PATH`。可以设置 `OPENCODE_BIN`，或确认 `~/.opencode/bin/opencode` 存在。
+如果 Codex 找不到 OpenCode，先运行：
 
-如果 CLI 命令存在但 lane 运行失败，请先在终端里直接运行同样的命令。常见原因是登录缺失、服务商配置缺失、该 Agent 内部模型/profile 设置问题，或外部 runtime 请求了权限。
+```bash
+command -v opencode
+test -x "$HOME/.opencode/bin/opencode"
+```
 
-如果校验脚本提示缺少 `yaml`，可以在用于校验的 Python 环境中安装 PyYAML，或使用其他 YAML 解析器检查 `SKILL.md` frontmatter。
+如果命令存在，但外部 Agent 调用失败，先在终端里直接跑同样的命令。常见原因是没有登录、服务商没配好、该 Agent 里的模型/profile 有问题，或外部 runtime 弹出了权限请求。
+
+如果你刚安装这个 skill，但 Codex 还没识别到，重启 Codex 或重新加载本地 skills。
 
 ## 许可证
 
