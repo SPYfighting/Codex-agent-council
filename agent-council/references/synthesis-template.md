@@ -1,8 +1,8 @@
 # Synthesis Template
 
-Use the full template after collecting Host Codex and external lane reports for `/council`.
+Use the full template after collecting Host Codex and external lane reports for `council` mode.
 
-For `/claudecode` or `/opencode`, use the single-lane template at the end of this file instead of forcing a three-lane comparison.
+For `claude` or `opencode` mode, use the single-lane template at the end of this file instead of forcing a three-lane comparison.
 
 ```markdown
 # Agent Council Synthesis
@@ -123,7 +123,7 @@ Preserve raw lane outputs in collapsible blocks by default. If an output is too 
 
 ## Single-Lane Outside Opinion Template
 
-Use this for `/claudecode` or `/opencode`.
+Use this for `claude` or `opencode` mode.
 
 ```markdown
 # Outside Opinion: <Claude Code | OpenCode>

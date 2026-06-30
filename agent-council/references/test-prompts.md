@@ -5,33 +5,33 @@ Use these after installing or changing the skill. Prefer short prompts first so 
 ## Command Discovery
 
 ```text
-/claudecode Run a one-sentence readiness check. Do not inspect files. Reply only with whether Claude Code was reached.
+/agent-council claude Run a one-sentence readiness check. Do not inspect files. Reply only with whether Claude Code was reached.
 ```
 
 ```text
-/opencode Run a one-sentence readiness check. Do not inspect files. Reply only with whether OpenCode was reached.
+/agent-council opencode Run a one-sentence readiness check. Do not inspect files. Reply only with whether OpenCode was reached.
 ```
 
 ## Single Outside Opinion
 
 ```text
-/claudecode Review this README for one hidden usability risk and one missing installation detail. Treat your answer as an outside opinion only.
+/agent-council claude Review this README for one hidden usability risk and one missing installation detail. Treat your answer as an outside opinion only.
 ```
 
 ## Full Council
 
 ```text
-/council We are considering whether to add a deterministic wrapper script to this Codex skill. Compare reliability, maintenance burden, and user experience. Do not edit files.
+/agent-council council We are considering whether to add a deterministic wrapper script to this Codex skill. Compare reliability, maintenance burden, and user experience. Do not edit files.
 ```
 
 ## Research Planning
 
 ```text
-/council Evaluate whether a three-month pilot in enzyme thermostability engineering should begin with literature triage, small focused mutagenesis, or protein language model screening. Separate established facts, model inference, and wet-lab feasibility.
+/agent-council council Evaluate whether a three-month pilot in enzyme thermostability engineering should begin with literature triage, small focused mutagenesis, or protein language model screening. Separate established facts, model inference, and wet-lab feasibility.
 ```
 
 ## Software Engineering
 
 ```text
-/council Review this repository for the next safest improvement. Focus on tests, failure modes, and what should not be changed yet.
+/agent-council council Review this repository for the next safest improvement. Focus on tests, failure modes, and what should not be changed yet.
 ```

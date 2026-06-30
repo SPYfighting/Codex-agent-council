@@ -1,6 +1,6 @@
 interface:
   display_name: "Agent Council"
-  short_description: "Core workflow for local agent reviews"
-  default_prompt: "$agent-council /council "
+  short_description: "Run Claude Code and OpenCode reviews from one skill"
+  default_prompt: "$agent-council council "
 policy:
   allow_implicit_invocation: false

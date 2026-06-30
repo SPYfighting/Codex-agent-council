@@ -20,9 +20,9 @@ The current design uses Codex as the main entrance. The desktop GUI is comfortab
 
 ## What it does
 
-- `/council` asks Host Codex, Claude Code, and OpenCode to review the same question when those agents are available.
-- `/claudecode` asks Claude Code only and returns its answer as one outside opinion.
-- `/opencode` asks OpenCode only and returns its answer as one outside opinion.
+- `council` mode asks Host Codex, Claude Code, and OpenCode to review the same question when those agents are available.
+- `claude` mode asks Claude Code only and returns its answer as one outside opinion.
+- `opencode` mode asks OpenCode only and returns its answer as one outside opinion.
 - Codex can keep raw external answers in collapsible sections when useful.
 - External agents run as one-shot foreground commands by default.
 - External agents are told not to edit existing project files unless the request clearly asks for edits.
@@ -30,15 +30,23 @@ The current design uses Codex as the main entrance. The desktop GUI is comfortab
 
 ## How to invoke it
 
-After installation, Codex should show three entries in the slash list. You can choose them from the list or type them directly:
+After installation, Codex should show one skill entry, `agent-council`. Choose it from the slash list or use the fallback skill form, then put the mode first:
 
 ```text
-/council ...
-/claudecode ...
-/opencode ...
+/agent-council council ...
+/agent-council claude ...
+/agent-council opencode ...
 ```
 
-`agent-council/` is the core workflow. `council/`, `claudecode/`, and `opencode/` are small alias skills that make those three direct slash entries available. If you install only `agent-council/`, use the fallback form such as `$agent-council /council ...`.
+Fallback form:
+
+```text
+$agent-council council ...
+$agent-council claude ...
+$agent-council opencode ...
+```
+
+If you invoke the skill with a task but no mode, it defaults to `council`. If you are asking about the skill's behavior or setup, it answers normally without calling external agents.
 
 ## Before you install
 
@@ -77,11 +85,11 @@ From this repository, you can also run the local command check:
 
 ## Install
 
-Copy the core skill and the three alias skills into your Codex skills directory:
+Copy the single skill folder into your Codex skills directory:
 
 ```bash
 mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
-cp -R agent-council council claudecode opencode "${CODEX_HOME:-$HOME/.codex}/skills/"
+cp -R agent-council "${CODEX_HOME:-$HOME/.codex}/skills/"
 ```
 
 If Codex does not notice the new skills right away, restart Codex or reload local skills.
@@ -91,7 +99,7 @@ If Codex does not notice the new skills right away, restart Codex or reload loca
 If you want another agent to install it for you, this prompt is usually enough:
 
 ```text
-Install the Codex skills from this repository. Copy agent-council/, council/, claudecode/, and opencode/ into ${CODEX_HOME:-$HOME/.codex}/skills. Do not copy README files, LICENSE, .git/, raw/, runs/, or other repository files into the Codex skills directory. Check that each copied folder has a valid SKILL.md frontmatter. Do not install or reconfigure Claude Code or OpenCode unless I ask for that separately.
+Install the Codex skill from this repository. Copy only agent-council/ into ${CODEX_HOME:-$HOME/.codex}/skills. Do not copy README files, LICENSE, .git/, raw/, runs/, or other repository files into the Codex skills directory. Check that agent-council/SKILL.md has valid frontmatter. Do not install or reconfigure Claude Code or OpenCode unless I ask for that separately.
 ```
 
 ## Command discovery
@@ -120,36 +128,36 @@ The external lane runner is `agent-council/scripts/run-lane.sh`. It reads the ta
 Software architecture review:
 
 ```text
-/council Evaluate whether this monolith should be split into billing, notification, and reporting services. Focus on migration risk, team complexity, and test strategy.
+/agent-council council Evaluate whether this monolith should be split into billing, notification, and reporting services. Focus on migration risk, team complexity, and test strategy.
 ```
 
 Claude Code as a second reviewer:
 
 ```text
-/claudecode Review this Codex-written PR from an outside perspective. Look for hidden regression risks and missing tests. Treat your answer as an outside opinion, not the final conclusion.
+/agent-council claude Review this Codex-written PR from an outside perspective. Look for hidden regression risks and missing tests. Treat your answer as an outside opinion, not the final conclusion.
 ```
 
 Market research:
 
 ```text
-/opencode Research whether there is a market for a lightweight membership system for independent coffee shops. Compare target users, buying triggers, competitors, and failure risks.
+/agent-council opencode Research whether there is a market for a lightweight membership system for independent coffee shops. Compare target users, buying triggers, competitors, and failure risks.
 ```
 
 Research planning:
 
 ```text
-/council Use the available literature-search skills to evaluate whether this X direction is worth a three-month pilot. Separate established facts, model inference, and practical feasibility.
+/agent-council council Use the available literature-search skills to evaluate whether this X direction is worth a three-month pilot. Separate established facts, model inference, and practical feasibility.
 ```
 
 Documentation planning:
 
 ```text
-/claudecode Propose an onboarding documentation structure for this backend repository. Focus on what a new contributor really needs in the first week.
+/agent-council claude Propose an onboarding documentation structure for this backend repository. Focus on what a new contributor really needs in the first week.
 ```
 
 ## Safety boundaries
 
-- Explicitly invoking `/council`, `/claudecode`, or `/opencode` is treated as permission to send the task packet, provided context, and relevant readable materials to the selected external CLI agent.
+- Explicitly invoking `agent-council` in `council`, `claude`, or `opencode` mode is treated as permission to send the task packet, provided context, and relevant readable materials to the selected external CLI agent.
 - The skill does not add an extra privacy stop just because material is private, unpublished, confidential, or research-related. The user decides whether the material is appropriate to send.
 - Codex may still ask for, or deny, host command approval when an external CLI needs network access or access to its own files. That approval layer is outside this skill.
 - The skill does not use dangerous permission-bypass flags by default.
@@ -161,7 +169,7 @@ Documentation planning:
 ## Limitations
 
 - This is a Codex skill workflow, not a native process manager.
-- The direct entries depend on the `council/`, `claudecode/`, and `opencode/` alias skills. If only `agent-council/` is installed, use a fallback such as `$agent-council /council ...`.
+- `council`, `claude`, and `opencode` are mode words inside one skill, not separate installed skills.
 - Claude Code and OpenCode CLI flags may change across versions. If a lane behaves strangely, run `./agent-council/scripts/doctor.sh` and check the installed CLI's `--help`.
 - Host Codex can write its own lane first, but independence is best-effort unless the current Codex environment provides a separate subagent or runtime.
 - Very large prompts or raw outputs may need artifacts or summarization.
@@ -181,16 +189,8 @@ agent-council/
     lane-report-template.md
     synthesis-template.md
     test-prompts.md
-council/
-  SKILL.md
-  agents/openai.yaml
-claudecode/
-  SKILL.md
-  agents/openai.yaml
-opencode/
-  SKILL.md
-  agents/openai.yaml
 tests/
+  test-agent-council-layout.sh
   test-agent-council-scripts.sh
 README.md
 README.zh-CN.md

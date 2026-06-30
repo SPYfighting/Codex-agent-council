@@ -1,6 +1,6 @@
 ---
 name: agent-council
-description: Core Agent Council workflow for local multi-agent reviews. Use through the /council, /claudecode, or /opencode alias skills when installed, or explicitly with $agent-council plus one of those mode markers.
+description: Unified Agent Council workflow for local multi-agent reviews. Use when the user invokes agent-council to run council, claude, or opencode mode from one skill entry.
 ---
 
 # Agent Council
@@ -9,17 +9,19 @@ Run a small council from inside Codex by asking local agent runtimes, such as Cl
 
 ## Invocation
 
-- Preferred invocation is through the slash-friendly alias skills: `/council`, `/claudecode`, or `/opencode`.
-- Fallback invocation is `$agent-council /council`, `$agent-council /claudecode`, or `$agent-council /opencode`.
-- A single skill cannot create three independent slash aliases by itself. This repository ships separate alias skill folders for those entries.
-- If the user writes `/council`, `/claudecode`, or `/opencode` and the matching alias skill is not installed, explain that the alias folders need to be installed alongside `agent-council/`.
-- If the user asks about the skill's behavior without choosing a mode marker, answer normally and do not call external agents.
+Unified invocation uses this single skill entry:
+
+- `$agent-council council <task>` or `/agent-council council <task>`
+- `$agent-council claude <task>` or `/agent-council claude <task>`
+- `$agent-council opencode <task>` or `/agent-council opencode <task>`
+
+If the user invokes the skill with a real task but no mode, default to `council`. If the user is asking about the skill's behavior, configuration, or troubleshooting, answer normally and do not call external agents.
 
 ## Modes
 
-- `/council`: run Host Codex independently, then run Claude Code and OpenCode when available.
-- `/claudecode`: run Claude Code only as one outside opinion. Do not create a separate Host Codex analytical lane unless the user asks.
-- `/opencode`: run OpenCode only as one outside opinion. Do not create a separate Host Codex analytical lane unless the user asks.
+- council: run Host Codex, Claude Code, and OpenCode when available. This is the mode for calling both external agents together.
+- claude: run Claude Code only as one outside opinion. Accept `claudecode` and `claude-code` as synonyms. Do not create a separate Host Codex analytical lane unless the user asks.
+- opencode: run OpenCode only as one outside opinion. Accept `open-code` as a synonym. Do not create a separate Host Codex analytical lane unless the user asks.
 
 ## Operating Rules
 
@@ -42,13 +44,14 @@ Run a small council from inside Codex by asking local agent runtimes, such as Cl
 ## Workflow
 
 1. Route the mode marker.
-   - `/council` means Host Codex plus available Claude Code and OpenCode lanes.
-   - `/claudecode` means Claude Code only.
-   - `/opencode` means OpenCode only.
+   - `council` means Host Codex plus available Claude Code and OpenCode lanes.
+   - `claude`, `claudecode`, or `claude-code` means Claude Code only.
+   - `opencode` or `open-code` means OpenCode only.
+   - If there is a real task but no explicit mode, use `council`.
 
 2. Confirm the scope.
    - Restate the question, success criteria, constraints, allowed materials, selected lanes, and edit policy.
-   - Do not ask for a separate data-sharing confirmation when the user has explicitly invoked `/council`, `/claudecode`, `/opencode`, or the fallback `$agent-council ...` form.
+   - Do not ask for a separate data-sharing confirmation when the user has explicitly invoked this skill for `council`, `claude`, or `opencode` mode.
    - For high-responsibility research or engineering decisions, include conservative, balanced, and exploratory frames before running lanes.
 
 3. Prepare a run directory.
@@ -64,10 +67,10 @@ Run a small council from inside Codex by asking local agent runtimes, such as Cl
    - Mark file modification as disallowed unless the user explicitly allows it.
    - Request the lane report structure from `references/lane-report-template.md`.
 
-5. Produce the Host Codex lane for `/council`.
+5. Produce the Host Codex lane for `council` mode.
    - Prefer a Codex subagent when available so Host Codex reasoning is separated from the final synthesis.
    - If no subagent is available, write Codex's independent lane report before reading external lane outputs.
-   - Do not produce this lane for `/claudecode` or `/opencode` unless the user asks.
+   - Do not produce this lane for `claude` or `opencode` mode unless the user asks.
 
 6. Run external lanes through the bundled script.
    - Resolve the script path relative to this `SKILL.md`: `scripts/run-lane.sh`.
@@ -108,8 +111,8 @@ Run a small council from inside Codex by asking local agent runtimes, such as Cl
    - OpenCode variant: add `--variant <provider-specific-reasoning-effort>`.
 
 7. Synthesize the result.
-   - For `/council`, read `references/synthesis-template.md` and compare evidence selection, reasoning, consensus, disagreement, missing evidence, and next-step validation.
-   - For `/claudecode` or `/opencode`, report the outside opinion directly with a short Codex framing note. Do not force a three-lane comparison table.
+   - For `council` mode, read `references/synthesis-template.md` and compare evidence selection, reasoning, consensus, disagreement, missing evidence, and next-step validation.
+   - For `claude` or `opencode` mode, report the outside opinion directly with a short Codex framing note. Do not force a three-lane comparison table.
    - Include raw lane outputs in collapsible `<details>` blocks unless the output is too large.
    - If raw output is stored outside the response, state the exact artifact path.
 
@@ -149,7 +152,7 @@ The script also creates its own short-lived scratch directory and removes it wit
 ## Limitations
 
 - This is a Codex skill workflow, not a native process manager.
-- The mode markers are interpreted by Codex after the skill is invoked; they are not independent slash commands.
+- `council`, `claude`, and `opencode` are mode words inside this one skill. They are not separate skill folders.
 - CLI flags can change across Claude Code and OpenCode versions. Use `scripts/doctor.sh` or the CLI's `--help` output when behavior looks wrong.
 - Host Codex independence is best-effort. A Codex subagent is preferable, but it may still share model family or local context.
 - Very large task packets or raw lane outputs may need summarization or durable artifacts.
@@ -158,6 +161,6 @@ The script also creates its own short-lived scratch directory and removes it wit
 
 - Read `references/task-packet-template.md` when creating the prompt sent to every lane.
 - Read `references/lane-report-template.md` when asking each lane for structured output.
-- Read `references/synthesis-template.md` before writing a full `/council` report.
+- Read `references/synthesis-template.md` before writing a full `council` mode report.
 - Read `references/cli-adapters.md` when changing lane command behavior or debugging CLI compatibility.
 - Read `references/test-prompts.md` when manually smoke-testing the skill.
