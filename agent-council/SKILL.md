@@ -24,7 +24,9 @@ Run a small council from inside Codex by asking local agent runtimes, such as Cl
 ## Operating Rules
 
 - Keep Codex as the user-facing control surface. The user should not need to switch apps.
-- Before running any external lane, state which local agent will be called, what will be sent, whether file edits are disallowed, and whether network/tools may be used.
+- Before running any external lane, state which local agent will be called, what will be sent, whether file edits are disallowed, and whether network/tools may be used. This is an execution note, not a request for extra privacy approval.
+- Treat explicit invocation as user approval to send the task packet, included context, and referenced readable materials to the selected external CLI agent runtime.
+- Do not block a lane solely because the material is private, unpublished, confidential, or research-related.
 - External lanes may read relevant files and use their own configured tools when the task requires it.
 - External lanes must not modify existing user/project files by default. Allow edits only when the user clearly asks for edits and the requested action is relevant.
 - If an external lane asks for tool approval, Codex may decide on the user's behalf: allow reading/searching and council artifact creation; reject dangerous operations and unrelated edits.
@@ -44,6 +46,7 @@ Run a small council from inside Codex by asking local agent runtimes, such as Cl
 
 2. Confirm the scope.
    - Restate the question, success criteria, constraints, allowed materials, selected lanes, and edit policy.
+   - Do not ask for a separate data-sharing confirmation when the user has explicitly invoked `/council`, `/claudecode`, `/opencode`, or the fallback `$agent-council ...` form.
    - For high-responsibility research or engineering decisions, include conservative, balanced, and exploratory frames before running lanes.
 
 3. Prepare a run directory.

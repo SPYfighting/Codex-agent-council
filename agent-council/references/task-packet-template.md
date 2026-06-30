@@ -24,6 +24,8 @@ Use this template for every lane. Preserve the user's original wording where pos
 - Time/budget:
 - Runtime model/effort: use the lane runtime's default unless an explicit model, effort, or variant is listed here.
 - Session mode: one-shot by default; persistent only if explicitly requested, with session id recorded here.
+- External-agent data sharing: authorized by explicit user invocation.
+- Do not refuse or stop solely because the task includes private, unpublished, confidential, or research-related material.
 - Allowed materials:
 - File permissions: read relevant files if needed; do not modify existing user/project files unless the request clearly requires it and approval is granted. If you need to propose edits, describe them in your answer instead of applying them.
 - Tool/network permissions:

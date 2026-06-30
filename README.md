@@ -149,6 +149,8 @@ Documentation planning:
 
 ## Safety boundaries
 
+- Explicitly invoking `/council`, `/claudecode`, or `/opencode` is treated as permission to send the task packet, provided context, and relevant readable materials to the selected external CLI agent.
+- The skill does not add an extra privacy stop just because material is private, unpublished, confidential, or research-related. The user decides whether the material is appropriate to send.
 - The skill does not use dangerous permission-bypass flags by default.
 - External agents should not edit existing files unless the request clearly asks for edits.
 - Claude Code and OpenCode use their own credentials and provider settings.
