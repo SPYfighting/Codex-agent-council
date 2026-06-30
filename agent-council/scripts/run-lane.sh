@@ -64,6 +64,25 @@ write_metadata() {
   } >>"$metadata_file"
 }
 
+append_failure_hints() {
+  if [[ "$lane_name" == "opencode" ]] &&
+    grep -Fq 'FileSystem.open' "$stderr_file" 2>/dev/null &&
+    grep -Fq '/.local/share/opencode/log/opencode.log' "$stderr_file" 2>/dev/null; then
+    cat >>"$stderr_file" <<'EOF'
+
+[agent-council] OpenCode could not write its user data log.
+[agent-council] In a restricted Codex sandbox, OpenCode may need host/home write approval plus network approval.
+[agent-council] Do not work around this by redirecting XDG_DATA_HOME unless you also provide OpenCode credentials there; OpenCode stores auth under its data home.
+EOF
+  fi
+
+  if [[ "$exit_code" -eq 124 ]]; then
+    cat >>"$stderr_file" <<'EOF'
+[agent-council] If this happened in a restricted Codex sandbox, command discovery may be fine while model API access is still blocked by network permissions.
+EOF
+  fi
+}
+
 resolve_claude() {
   if [[ -n "${CLAUDE_BIN:-}" && -x "${CLAUDE_BIN:-}" ]]; then
     bin_path="$CLAUDE_BIN"
@@ -312,5 +331,6 @@ case "$exit_code" in
   *) status="failed" ;;
 esac
 
+append_failure_hints
 write_metadata "lane_result" "$status" "$exit_code" "$finished_at" "$((finished_seconds - started_seconds))"
 exit "$exit_code"

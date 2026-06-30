@@ -15,7 +15,7 @@ assert_file_contains() {
   local file="$1"
   local text="$2"
   grep -Fq -- "$text" "$file" || {
-    printf '--- %s ---\n' "$file" >&2
+    printf '%s\n' "--- $file ---" >&2
     cat "$file" >&2 || true
     fail "expected file to contain: $text"
   }
@@ -60,6 +60,26 @@ last_arg="${!#}"
 echo "OPENCODE_OK"
 printf 'PROMPT=%s\n' "$last_arg"
 printf 'fake opencode stderr\n' >&2
+EOF
+  chmod +x "$bin"
+}
+
+make_log_blocked_opencode() {
+  local bin="$1"
+  cat >"$bin" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  echo "fake opencode help"
+  exit 0
+fi
+if [[ "${1:-}" == "run" && "${2:-}" == "--help" ]]; then
+  echo "fake opencode run help"
+  exit 0
+fi
+printf '\033[91m\033[1mError: \033[0mUnexpected error\n\n' >&2
+printf 'Unknown: FileSystem.open (/Users/hy/.local/share/opencode/log/opencode.log)\n' >&2
+exit 1
 EOF
   chmod +x "$bin"
 }
@@ -154,6 +174,29 @@ test_run_lane_uses_opencode_home_fallback() {
   assert_file_contains "$out/metadata.jsonl" '"binary_source":"home-fallback"'
 }
 
+test_run_lane_explains_opencode_log_permission_failure() {
+  local tmp
+  tmp="$(mktemp -d)"
+  trap 'rm -rf "$tmp"' RETURN
+
+  make_log_blocked_opencode "$tmp/opencode"
+
+  local task="$tmp/task.md"
+  local out="$tmp/out"
+  echo "opencode log permission test" >"$task"
+
+  if OPENCODE_BIN="$tmp/opencode" "$RUN_LANE" \
+    --lane opencode \
+    --task-file "$task" \
+    --out-dir "$out" \
+    --timeout 5; then
+    fail "run-lane should fail when OpenCode cannot write its log"
+  fi
+
+  assert_file_contains "$out/opencode.stderr.txt" "OpenCode could not write its user data log"
+  assert_file_contains "$out/opencode.stderr.txt" "Do not work around this by redirecting XDG_DATA_HOME"
+}
+
 test_run_lane_reports_missing_binary() {
   local tmp
   tmp="$(mktemp -d)"
@@ -203,6 +246,7 @@ test_run_lane_timeout_records_124() {
 test_doctor_uses_env_bins
 test_run_lane_preserves_special_prompt_and_metadata
 test_run_lane_uses_opencode_home_fallback
+test_run_lane_explains_opencode_log_permission_failure
 test_run_lane_reports_missing_binary
 test_run_lane_timeout_records_124
 

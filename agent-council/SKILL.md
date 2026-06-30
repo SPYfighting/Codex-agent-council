@@ -27,10 +27,12 @@ Run a small council from inside Codex by asking local agent runtimes, such as Cl
 - Before running any external lane, state which local agent will be called, what will be sent, whether file edits are disallowed, and whether network/tools may be used. This is an execution note, not a request for extra privacy approval.
 - Treat explicit invocation as user approval to send the task packet, included context, and referenced readable materials to the selected external CLI agent runtime.
 - Do not block a lane solely because the material is private, unpublished, confidential, or research-related.
+- A Codex permission-layer rejection is outside this skill's control. If Codex refuses to run an external CLI with the network or home-directory access that the CLI requires, report it as a host permission block rather than a lane opinion.
 - External lanes may read relevant files and use their own configured tools when the task requires it.
 - External lanes must not modify existing user/project files by default. Allow edits only when the user clearly asks for edits and the requested action is relevant.
 - If an external lane asks for tool approval, Codex may decide on the user's behalf: allow reading/searching and council artifact creation; reject dangerous operations and unrelated edits.
 - Do not use permission-bypass flags such as `--dangerously-skip-permissions` unless the user explicitly requests that mode.
+- Do not redirect OpenCode's `XDG_DATA_HOME` just to avoid a log write failure; OpenCode stores authentication under its data home, so this can break an otherwise working setup.
 - Prefer one-shot foreground runs. Use persistent external sessions only when the user explicitly asks for a long conversation or multi-turn follow-up.
 - Do not set a default spend cap. If the user gives a budget, pass it through and record it.
 - Do not precompress the task through Codex unless the materials are too large. Give each lane the same original task packet where feasible.
@@ -72,6 +74,8 @@ Run a small council from inside Codex by asking local agent runtimes, such as Cl
    - Use `scripts/doctor.sh` when setup is uncertain, a command fails, or the user asks for a check.
    - Pass the task packet as a file, not as hand-written shell text.
    - Use a finite timeout for process safety. Default to `1800` seconds unless the user asks for a different value.
+   - In restricted Codex sessions, Claude Code and OpenCode usually need host command approval because they call external model APIs. OpenCode may also need access to its user data directory for logs, sessions, and credentials.
+   - If the Codex permission layer rejects that host command, do not keep retrying with different wording. Report the rejected lane and tell the user that the current Codex approval/sandbox setting blocked it.
 
    Claude Code:
 

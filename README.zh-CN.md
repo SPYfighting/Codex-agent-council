@@ -151,6 +151,7 @@ OpenCode：
 
 - 用户显式调用 `/council`、`/claudecode` 或 `/opencode` 时，即视为允许把任务包、提供的上下文和相关可读材料发送给对应外部 CLI Agent。
 - 本 skill 不会因为材料属于私有、未发表、保密或科研相关内容而额外阻断 lane；是否适合发送由用户自己判断。
+- 如果外部 CLI 需要联网，或需要访问它自己的用户目录文件，Codex 仍然可能要求审批，甚至直接拒绝。这一层属于 Codex 的运行权限，不是本 skill 能绕过的规则。
 - 默认不使用危险的权限绕过参数。
 - 外部 Agent 不应该修改已有文件，除非你的请求明确要求它这样做。
 - Claude Code 和 OpenCode 使用它们自己的登录状态、凭据和服务商设置。
@@ -211,7 +212,9 @@ command -v opencode
 test -x "$HOME/.opencode/bin/opencode"
 ```
 
-如果命令存在，但外部 Agent 调用失败，先在终端里直接跑同样的命令。常见原因是没有登录、服务商没配好、该 Agent 里的模型/profile 有问题，或外部 runtime 弹出了权限请求。
+如果命令存在，但外部 Agent 调用失败，先在终端里直接跑同样的命令。常见原因是没有登录、服务商没配好、该 Agent 里的模型/profile 有问题，Codex 沙箱/联网审批挡住了调用，或外部 runtime 弹出了权限请求。
+
+如果 OpenCode 报 `FileSystem.open (.../.local/share/opencode/log/opencode.log)`，说明它想写自己的常规用户日志。临时改 `XDG_DATA_HOME` 虽然能绕开日志路径，但也可能让 OpenCode 找不到已经保存的凭据。更合适的处理方式，是让 OpenCode lane 获得它正常运行所需的主机访问权限。
 
 如果你刚安装这个 skill，但 Codex 还没识别到，重启 Codex 或重新加载本地 skills。
 

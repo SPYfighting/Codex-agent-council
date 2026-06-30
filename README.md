@@ -151,6 +151,7 @@ Documentation planning:
 
 - Explicitly invoking `/council`, `/claudecode`, or `/opencode` is treated as permission to send the task packet, provided context, and relevant readable materials to the selected external CLI agent.
 - The skill does not add an extra privacy stop just because material is private, unpublished, confidential, or research-related. The user decides whether the material is appropriate to send.
+- Codex may still ask for, or deny, host command approval when an external CLI needs network access or access to its own files. That approval layer is outside this skill.
 - The skill does not use dangerous permission-bypass flags by default.
 - External agents should not edit existing files unless the request clearly asks for edits.
 - Claude Code and OpenCode use their own credentials and provider settings.
@@ -211,7 +212,9 @@ command -v opencode
 test -x "$HOME/.opencode/bin/opencode"
 ```
 
-If the command exists but the lane fails, try the same command in your terminal. Common causes are missing login, missing provider configuration, a model/profile issue inside that agent, or a permission prompt from the external runtime.
+If the command exists but the lane fails, try the same command in your terminal. Common causes are missing login, missing provider configuration, a model/profile issue inside that agent, a Codex sandbox/network approval block, or a permission prompt from the external runtime.
+
+If OpenCode fails with `FileSystem.open (.../.local/share/opencode/log/opencode.log)`, the CLI is trying to write its normal user log. Redirecting `XDG_DATA_HOME` can avoid that log path, but it may also hide OpenCode's saved credentials. In Codex, the better fix is to allow the OpenCode lane to run with the host access it normally needs.
 
 If Codex recently installed this skill and does not notice it yet, restart Codex or reload local skills.
 
